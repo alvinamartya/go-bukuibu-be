@@ -22,7 +22,6 @@ services:
       - db_pass: PjW7Jj37ZzWY4bpF
       - db_user: postgres
       - db_host: localhost
-      - db_port: 65473
       - PORT: 8080
       - token_password: ee7911c80b61b58b1b3c5bf8aa6976aa7e437bfe09f5341aace31d0b37d09688
     depends_on:
