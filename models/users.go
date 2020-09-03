@@ -171,7 +171,7 @@ func Login(username, password string) (map[string]interface{}, int) {
 	}, http.StatusOK
 }
 
-func GetUserById(id int) (map[string]interface{}, int) {
+func GetUserById(id uint) (map[string]interface{}, int) {
 	u := &User{}
 	err := GetDB().Table("users").Where("id = ?", id).First(u).Error
 	if err != nil {
@@ -190,5 +190,4 @@ func GetUserById(id int) (map[string]interface{}, int) {
 			"user": newUser,
 		}, http.StatusOK
 	}
-
 }
