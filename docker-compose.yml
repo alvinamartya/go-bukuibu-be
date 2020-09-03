@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  db:
+  postgres:
     container_name: postgres
     restart: always
     environment:
@@ -25,7 +25,8 @@ services:
       - PORT: 8080
       - token_password: ee7911c80b61b58b1b3c5bf8aa6976aa7e437bfe09f5341aace31d0b37d09688
     depends_on:
-      - db
+      - postgres
+
 networks:
   buku-ibu-networks:
 
