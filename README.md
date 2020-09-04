@@ -1,4 +1,4 @@
-# Backend for Diary app Buku Ibu
+# go-bukuibu-be
 A diary application to notes your feeling in everyday
 
 # Run via Docker
