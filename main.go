@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/alvinamartya/go-bukuibu-be/controllers"
 	"github.com/gorilla/mux"
-	"go-bukuibu-be/controllers"
 	"log"
 	"net/http"
 	"os"

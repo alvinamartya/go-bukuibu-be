@@ -2,8 +2,8 @@ package models
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-gorm/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"

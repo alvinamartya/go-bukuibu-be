@@ -17,8 +17,11 @@ services:
   buku-ibu-app:
     container_name: buku-ibu-app
     image: api-buku-ibu:1.0
+    volumes:
+      - api:/usr/src/app/
+    restart: on-failure
     ports:
-      - 8080:80
+      - 8080:8080
     networks:
       - buku-ibu-networks
     depends_on:
