@@ -3,27 +3,24 @@ version: "3.8"
 services:
   postgres:
     container_name: postgres
+    image: postgres
     restart: always
     environment:
-      - POSTGRES_PASSWORD: PjW7Jj37ZzWY4bpF
+      - POSTGRES_PASSWORD=${db_pass}
+      - POSTGRES_USER=${db_user}
+      - POSTGRES_DB=${db_name}
+      - DATABASE_HOST=${db_host}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - buku-ibu-networks
   buku-ibu-app:
     container_name: buku-ibu-app
-    image: buku-ibu-app
+    image: api-buku-ibu:1.0
     ports:
-      - 80:80
+      - 8080:80
     networks:
       - buku-ibu-networks
-    environment:
-      - db_name: buku_ibu_db
-      - db_pass: PjW7Jj37ZzWY4bpF
-      - db_user: postgres
-      - db_host: localhost
-      - PORT: 8080
-      - token_password: ee7911c80b61b58b1b3c5bf8aa6976aa7e437bfe09f5341aace31d0b37d09688
     depends_on:
       - postgres
 
@@ -31,4 +28,5 @@ networks:
   buku-ibu-networks:
 
 volumes:
+  api:
   postgres-data:

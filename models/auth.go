@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/go-gorm/gorm"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
