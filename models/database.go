@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 	"os"
 )
 
@@ -14,7 +15,7 @@ func init() {
 	// load environment
 	e := godotenv.Load()
 	if e != nil {
-		panic(e)
+		log.Fatalln(e)
 	}
 
 	// set db environment
@@ -31,13 +32,13 @@ func init() {
 	}), &gorm.Config{})
 
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	db = conn
 
 	// migrate models
-	db.Debug().AutoMigrate(&User{})
+	db.Debug().AutoMigrate(&User{}, &Authentication{})
 }
 
 func GetDB() *gorm.DB {

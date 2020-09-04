@@ -19,8 +19,12 @@ var CreateUser = func(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 	}
 
-	resp, statusCode := u.Create()
-	utils.Respond(w, resp, statusCode)
+	respSuccess, respErr, statusCode := u.Create()
+	if respSuccess != nil {
+		utils.RespondObject(w, respSuccess, statusCode)
+	} else {
+		utils.Respond(w, respErr, statusCode)
+	}
 }
 
 var Login = func(w http.ResponseWriter, r *http.Request) {
@@ -35,8 +39,12 @@ var Login = func(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 	}
 
-	resp, statusCode := models.Login(u.Username, u.Password)
-	utils.Respond(w, resp, statusCode)
+	respSuccess, respErr, statusCode := models.Login(u.Username, u.Password)
+	if respSuccess != nil {
+		utils.RespondObject(w, respSuccess, statusCode)
+	} else {
+		utils.Respond(w, respErr, statusCode)
+	}
 }
 
 var GetUserById = func(w http.ResponseWriter, r *http.Request) {

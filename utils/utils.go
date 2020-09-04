@@ -8,6 +8,15 @@ import (
 	"strings"
 )
 
+func RespondObject(w http.ResponseWriter, data interface{}, statusCode int)  {
+	w.WriteHeader(statusCode)
+	w.Header().Add("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 func Respond(w http.ResponseWriter, data map[string]interface{}, statusCode int) {
 	w.WriteHeader(statusCode)
 	w.Header().Add("Content-Type", "application/json")

@@ -3,13 +3,14 @@ package main
 import (
 	"github.com/gorilla/mux"
 	"go-bukuibu-be/controllers"
+	"log"
 	"net/http"
 	"os"
 )
 
 func main() {
 	router := mux.NewRouter()
-	apiPrefix := "api/"
+	apiPrefix := "/api/"
 
 	// user routing
 	userPrefix := apiPrefix + "user/"
@@ -26,6 +27,6 @@ func main() {
 	// running server
 	err := http.ListenAndServe(":"+port, router)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 }

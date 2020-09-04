@@ -19,9 +19,10 @@ type User struct {
 }
 
 type ResponseUser struct {
-	Id       uint   `json:"id" gorm:"primaryKey;autoIncrement:true"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
+	Id       uint                   `json:"id" gorm:"primaryKey;autoIncrement:true"`
+	Username string                 `json:"username"`
+	Name     string                 `json:"name"`
+	Auth     *ResponseAuthentication `json:"auth"`
 }
 
 func (u *User) Validate() (map[string]interface{}, int) {
@@ -33,7 +34,8 @@ func (u *User) Validate() (map[string]interface{}, int) {
 	}
 
 	// get user
-	user := User{}
+	user := &User{}
+	log.Println(u.Username)
 	err := GetDB().Table("users").Where("username = ?", u.Username).First(user).Error
 
 	// error
@@ -56,15 +58,15 @@ func (u *User) Validate() (map[string]interface{}, int) {
 	}, http.StatusOK
 }
 
-func (u *User) Create() (map[string]interface{}, int) {
+func (u *User) Create() (*ResponseUser, map[string]interface{}, int) {
 	if resp, statusCode := u.Validate(); statusCode != http.StatusOK {
-		return resp, statusCode
+		return nil, resp, statusCode
 	}
 
 	// create hashed password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": err,
 		}, http.StatusInternalServerError
 	}
@@ -74,16 +76,9 @@ func (u *User) Create() (map[string]interface{}, int) {
 	// create new user
 	errNewUser := GetDB().Create(u).Error
 	if errNewUser != nil {
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": err,
 		}, http.StatusInternalServerError
-	}
-
-	// user is exists
-	if u.ID <= 0 {
-		return map[string]interface{}{
-			"error": "Register account is failed",
-		}, http.StatusBadRequest
 	}
 
 	// create auth token
@@ -92,50 +87,61 @@ func (u *User) Create() (map[string]interface{}, int) {
 	claims["exp"] = time.Now().Add(time.Hour * 7 * 24).Unix()
 	tokenString, errTokenString := token.SignedString([]byte(os.Getenv("token_password")))
 	if errTokenString != nil {
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": errTokenString,
 		}, http.StatusInternalServerError
 	}
 
-	// auth model
-	auth := Authentication{
+	// create new authentication
+	auth := &Authentication{
 		UserId:  u.Id,
 		Token:   tokenString,
 		Expired: time.Now().Add(time.Hour * 7 * 24),
 	}
 
-	// user response model
-	newUser := ResponseUser{
-		Id:       u.Id,
-		Username: u.Username,
-		Name:     u.Name,
+	errNewAuth := GetDB().Create(auth).Error
+	if errNewAuth != nil {
+		return nil, map[string]interface{}{
+			"error": errNewAuth,
+		}, http.StatusInternalServerError
 	}
 
-	return map[string]interface{}{
-		"user": newUser,
-		"auth": auth,
-	}, http.StatusCreated
+	// authentication response model
+	newAuth, resp, statusCode := auth.Create()
+	if resp != nil {
+		return nil, resp, statusCode
+	}
+
+	// user response model
+	newUser := ResponseUser{
+		Username: u.Username,
+		Name:     u.Name,
+		Id:       u.Id,
+		Auth:     newAuth,
+	}
+
+	return &newUser, nil, http.StatusCreated
 }
 
-func Login(username, password string) (map[string]interface{}, int) {
+func Login(username, password string) (*ResponseUser, map[string]interface{}, int) {
 	u := &User{}
 	err := GetDB().Table("users").Where("username = ?", username).First(u).Error
 	if err != nil {
 		log.Println(err)
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": err,
 		}, http.StatusInternalServerError
 	}
 
 	if u.Username == "" {
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": "user not found",
 		}, http.StatusBadRequest
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": "Invalid password",
 		}, http.StatusBadRequest
 	}
@@ -146,16 +152,22 @@ func Login(username, password string) (map[string]interface{}, int) {
 	claims["exp"] = time.Now().Add(time.Hour * 7 * 24).Unix()
 	tokenString, errTokenString := token.SignedString([]byte(os.Getenv("token_password")))
 	if errTokenString != nil {
-		return map[string]interface{}{
+		return nil, map[string]interface{}{
 			"error": errTokenString,
 		}, http.StatusInternalServerError
 	}
 
-	// auth model
-	auth := Authentication{
+	// create new authentication
+	auth := &Authentication{
 		UserId:  u.Id,
 		Token:   tokenString,
 		Expired: time.Now().Add(time.Hour * 7 * 24),
+	}
+
+	// authentication response model
+	newAuth, resp, statusCode := auth.Create()
+	if resp != nil {
+		return nil, resp, statusCode
 	}
 
 	// user response model
@@ -163,12 +175,10 @@ func Login(username, password string) (map[string]interface{}, int) {
 		Username: u.Username,
 		Name:     u.Name,
 		Id:       u.Id,
+		Auth:     newAuth,
 	}
 
-	return map[string]interface{}{
-		"user": newUser,
-		"auth": auth,
-	}, http.StatusOK
+	return &newUser, nil, http.StatusOK
 }
 
 func GetUserById(id uint) (map[string]interface{}, int) {
@@ -177,7 +187,7 @@ func GetUserById(id uint) (map[string]interface{}, int) {
 	if err != nil {
 		log.Println(err)
 		return map[string]interface{}{
-			"error": "u not found",
+			"error": "user not found",
 		}, http.StatusBadRequest
 	} else {
 		newUser := ResponseUser{

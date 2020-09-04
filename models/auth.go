@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"time"
 )
@@ -14,15 +15,41 @@ type Authentication struct {
 	Expired time.Time `json:"expired"`
 }
 
-func (auth *Authentication) Create() (map[string]interface{}, int) {
-	err := GetDB().Create(auth).Error
+type ResponseAuthentication struct {
+	Token   string    `json:"token"`
+	Expired time.Time `json:"expired"`
+}
+
+func (auth *Authentication) Create() (*ResponseAuthentication, map[string]interface{}, int) {
+	temp := &Authentication{}
+	err := GetDB().Table("authentications").Where("user_id = ? AND expired >= ?", auth.UserId, time.Now()).First(temp).Error
 	if err != nil {
-		return map[string]interface{}{
+		log.Fatalln(err)
+		return nil, map[string]interface{}{
 			"error": err,
 		}, http.StatusInternalServerError
 	}
 
-	return map[string]interface{}{
-		"message": "success",
-	}, http.StatusCreated
+	if temp.Id <= 0 {
+		err = GetDB().Create(auth).Error
+		if err != nil {
+			return nil, map[string]interface{}{
+				"error": err,
+			}, http.StatusInternalServerError
+		}
+
+		newAuth := ResponseAuthentication{
+			Token:   auth.Token,
+			Expired: auth.Expired,
+		}
+
+		return &newAuth, nil, http.StatusCreated
+	} else {
+		newAuth := ResponseAuthentication{
+			Token:   temp.Token,
+			Expired: temp.Expired,
+		}
+
+		return &newAuth, nil, http.StatusOK
+	}
 }
