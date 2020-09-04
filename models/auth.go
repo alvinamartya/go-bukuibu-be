@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"log"
 	"net/http"
 	"time"
 )
@@ -24,7 +23,6 @@ func (auth *Authentication) Create() (*ResponseAuthentication, map[string]interf
 	temp := &Authentication{}
 	err := GetDB().Table("authentications").Where("user_id = ? AND expired >= ?", auth.UserId, time.Now()).First(temp).Error
 	if err != nil {
-		log.Fatalln(err)
 		return nil, map[string]interface{}{
 			"error": err,
 		}, http.StatusInternalServerError

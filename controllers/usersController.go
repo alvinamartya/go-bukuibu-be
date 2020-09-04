@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"go-bukuibu-be/models"
-	"go-bukuibu-be/utils"
+	"github.com/alvinamartya/go-bukuibu-be/models"
+	"github.com/alvinamartya/go-bukuibu-be/utils"
 	"log"
 	"net/http"
 )
