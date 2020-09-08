@@ -1,24 +1,30 @@
 version: "3.8"
 
 services:
-  postgres:
-    container_name: postgres
-    image: postgres
-    restart: always
+  db:
+    container_name: buku_ibu_db
+    image: mysql:8.0.21
+    ports:
+    - 3306:3306
     environment:
-      - POSTGRES_PASSWORD=${db_pass}
-      - POSTGRES_USER=${db_user}
-      - POSTGRES_DB=${db_name}
-      - DATABASE_HOST=${db_host}
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'buku-ibu-mysql'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_HOST: 'db'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - buku-ibu-networks
   buku-ibu-app:
     container_name: buku-ibu-app
-    image: api-buku-ibu:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - api:/usr/src/app/
+      - type: volume
+        source: api
+        target: /usr/src/app
     restart: on-failure
     ports:
       - 8080:8080
@@ -29,7 +35,8 @@ services:
 
 networks:
   buku-ibu-networks:
+    driver: bridge
 
 volumes:
   api:
-  postgres-data:
+  database-mysql:

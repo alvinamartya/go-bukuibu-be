@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -23,12 +23,13 @@ func init() {
 	dbPass := os.Getenv("db_pass")
 	dbName := os.Getenv("db_name")
 	dbHost := os.Getenv("db_host")
+	dbPort := os.Getenv("db_port")
 
 	// set postgres db
-	dbUri := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s", dbHost, dbUser, dbName, dbPass)
-	conn, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dbUri,
-		PreferSimpleProtocol: true,
+	dbUri := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+	conn, err := gorm.Open(mysql.New(mysql.Config{
+		DSN:               dbUri,
+		DefaultStringSize: 256,
 	}), &gorm.Config{})
 
 	if err != nil {

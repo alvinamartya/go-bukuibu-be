@@ -1,3 +1,7 @@
+# Import database
+FROM mysql:8.0.21
+COPY db.sql /docker-entrypoint-initdb.d
+
 # Start from golan base image
 FROM golang:alpine as builder
 
@@ -9,7 +13,8 @@ LABEL maintainer="Alvin Amartya <alvinamartya1@gmail.com>"
 RUN apk update && apk add --no-cache git go
 
 # Set the current working directory inside the container
-WORKDIR /go-bukuibu-be
+RUN mkdir /app
+WORKDIR /app
 
 # Copy go mod files
 COPY go.mod go.sum ./

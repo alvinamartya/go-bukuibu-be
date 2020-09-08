@@ -1,12 +1,11 @@
 package models
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/alvinamartya/go-bukuibu-be/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -22,7 +21,12 @@ type ResponseUser struct {
 	Id       uint                   `json:"id" gorm:"primaryKey;autoIncrement:true"`
 	Username string                 `json:"username"`
 	Name     string                 `json:"name"`
-	Auth     *ResponseAuthentication `json:"auth"`
+	Auth     ResponseAuthentication `json:"auth"`
+}
+
+type ResponseAuthentication struct {
+	Token   string `json:"token"`
+	Expired string `json:"expired"`
 }
 
 func (u *User) Validate() (map[string]interface{}, int) {
@@ -81,35 +85,11 @@ func (u *User) Create() (*ResponseUser, map[string]interface{}, int) {
 		}, http.StatusInternalServerError
 	}
 
-	// create auth token
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(time.Hour * 7 * 24).Unix()
-	tokenString, errTokenString := token.SignedString([]byte(os.Getenv("token_password")))
-	if errTokenString != nil {
+	tokenString, err := utils.CreateJWTToken(int64(u.Id), u.Username)
+	if err != nil {
 		return nil, map[string]interface{}{
-			"error": errTokenString,
+			"error": err,
 		}, http.StatusInternalServerError
-	}
-
-	// create new authentication
-	auth := &Authentication{
-		UserId:  u.Id,
-		Token:   tokenString,
-		Expired: time.Now().Add(time.Hour * 7 * 24),
-	}
-
-	errNewAuth := GetDB().Create(auth).Error
-	if errNewAuth != nil {
-		return nil, map[string]interface{}{
-			"error": errNewAuth,
-		}, http.StatusInternalServerError
-	}
-
-	// authentication response model
-	newAuth, resp, statusCode := auth.Create()
-	if resp != nil {
-		return nil, resp, statusCode
 	}
 
 	// user response model
@@ -117,7 +97,10 @@ func (u *User) Create() (*ResponseUser, map[string]interface{}, int) {
 		Username: u.Username,
 		Name:     u.Name,
 		Id:       u.Id,
-		Auth:     newAuth,
+		Auth: ResponseAuthentication{
+			Token:   tokenString,
+			Expired: utils.ConvertTimeToString(time.Now().Add(time.Hour * 7 * 24)),
+		},
 	}
 
 	return &newUser, nil, http.StatusCreated
@@ -146,28 +129,11 @@ func Login(username, password string) (*ResponseUser, map[string]interface{}, in
 		}, http.StatusBadRequest
 	}
 
-	// create auth token
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(time.Hour * 7 * 24).Unix()
-	tokenString, errTokenString := token.SignedString([]byte(os.Getenv("token_password")))
-	if errTokenString != nil {
+	tokenString, err := utils.CreateJWTToken(int64(u.Id), u.Username)
+	if err != nil {
 		return nil, map[string]interface{}{
-			"error": errTokenString,
+			"error": err,
 		}, http.StatusInternalServerError
-	}
-
-	// create new authentication
-	auth := &Authentication{
-		UserId:  u.Id,
-		Token:   tokenString,
-		Expired: time.Now().Add(time.Hour * 7 * 24),
-	}
-
-	// authentication response model
-	newAuth, resp, statusCode := auth.Create()
-	if resp != nil {
-		return nil, resp, statusCode
 	}
 
 	// user response model
@@ -175,7 +141,10 @@ func Login(username, password string) (*ResponseUser, map[string]interface{}, in
 		Username: u.Username,
 		Name:     u.Name,
 		Id:       u.Id,
-		Auth:     newAuth,
+		Auth: ResponseAuthentication{
+			Token:   tokenString,
+			Expired: utils.ConvertTimeToString(time.Now().Add(time.Hour * 7 * 24)),
+		},
 	}
 
 	return &newUser, nil, http.StatusOK
