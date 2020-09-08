@@ -2,28 +2,24 @@ package models
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
+	"github.com/alvinamartya/go-bukuibu-be/utils"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
-	"os"
 )
 
 var db *gorm.DB
 
 func init() {
-	// load environment
-	e := godotenv.Load()
-	if e != nil {
-		log.Fatalln(e)
+	// load environments
+	dbUser, err := utils.GetEnvVar("db_user")
+	dbPass, err := utils.GetEnvVar("db_pass")
+	dbName, err := utils.GetEnvVar("db_name")
+	dbHost, err := utils.GetEnvVar("db_host")
+	dbPort, err := utils.GetEnvVar("db_port")
+	if err != nil {
+		log.Fatalln(err)
 	}
-
-	// set db environment
-	dbUser := os.Getenv("db_user")
-	dbPass := os.Getenv("db_pass")
-	dbName := os.Getenv("db_name")
-	dbHost := os.Getenv("db_host")
-	dbPort := os.Getenv("db_port")
 
 	// set postgres db
 	dbUri := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
@@ -39,7 +35,7 @@ func init() {
 	db = conn
 
 	// migrate models
-	db.Debug().AutoMigrate(&User{}, &Authentication{})
+	db.Debug().AutoMigrate(&User{})
 }
 
 func GetDB() *gorm.DB {
