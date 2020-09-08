@@ -13,7 +13,9 @@ services:
       MYSQL_PASSWORD: 'root'
       MYSQL_ROOT_HOST: 'db'
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - type: volume
+        source: database-mysql
+        target: /var/lib/mysql
     networks:
       - buku-ibu-networks
   buku-ibu-app:

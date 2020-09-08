@@ -36,8 +36,8 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /go-bukuibu-be/main .
-COPY --from=builder /go-bukuibu-be/.env .
+COPY --from=builder /app/main .
+COPY --from=builder /app/.env .
 
 # Expose port 8080 to the outside WORD
 EXPOSE 8080
