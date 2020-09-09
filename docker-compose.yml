@@ -28,7 +28,6 @@ services:
     restart: on-failure
     ports:
       - 8080:8080
-#    command: [ "./wait-for", "buku_ibu_db:3306", "--", "--", "./main" ]
     networks:
       - buku-ibu-networks
     depends_on:

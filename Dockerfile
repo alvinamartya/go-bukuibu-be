@@ -35,7 +35,6 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
-#COPY --from=builder /app/wait-for .
 COPY --from=builder /app/db.sql .
 COPY --from=builder /app/config ./config
 
