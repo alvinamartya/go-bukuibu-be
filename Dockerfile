@@ -1,15 +1,18 @@
 # Start from golan base image
 FROM golang:alpine as builder
 
+ENV GO111MODULE=auto
+
 # Add Maintainer info
 LABEL maintainer="Alvin Amartya <alvinamartya1@gmail.com>"
 
 # Install git
 # Git is required for fetching the dependencies
-RUN apk update && apk add --no-cache git go
+RUN apk update && apk add --no-cache git go bash
 
 # Set the current working directory inside the container
-WORKDIR /go-bukuibu-be
+RUN mkdir /app
+WORKDIR /app
 
 # Copy go mod files
 COPY go.mod go.sum ./
@@ -31,8 +34,9 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /go-bukuibu-be/main .
-COPY --from=builder /go-bukuibu-be/.env .
+COPY --from=builder /app/main .
+COPY --from=builder /app/db.sql .
+COPY --from=builder /app/config ./config
 
 # Expose port 8080 to the outside WORD
 EXPOSE 8080

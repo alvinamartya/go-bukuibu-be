@@ -2,33 +2,30 @@ package models
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
+	"github.com/alvinamartya/go-bukuibu-be/utils"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
-	"os"
 )
 
 var db *gorm.DB
 
 func init() {
-	// load environment
-	e := godotenv.Load()
-	if e != nil {
-		log.Fatalln(e)
+	// load environments
+	dbUser, err := utils.GetEnvVar("db_user")
+	dbPass, err := utils.GetEnvVar("db_pass")
+	dbName, err := utils.GetEnvVar("db_name")
+	dbHost, err := utils.GetEnvVar("db_host")
+	dbPort, err := utils.GetEnvVar("db_port")
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	// set db environment
-	dbUser := os.Getenv("db_user")
-	dbPass := os.Getenv("db_pass")
-	dbName := os.Getenv("db_name")
-	dbHost := os.Getenv("db_host")
-
 	// set postgres db
-	dbUri := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s", dbHost, dbUser, dbName, dbPass)
-	conn, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dbUri,
-		PreferSimpleProtocol: true,
+	dbUri := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+	conn, err := gorm.Open(mysql.New(mysql.Config{
+		DSN:               dbUri,
+		DefaultStringSize: 256,
 	}), &gorm.Config{})
 
 	if err != nil {
@@ -38,7 +35,7 @@ func init() {
 	db = conn
 
 	// migrate models
-	db.Debug().AutoMigrate(&User{}, &Authentication{})
+	db.Debug().AutoMigrate(&User{})
 }
 
 func GetDB() *gorm.DB {
