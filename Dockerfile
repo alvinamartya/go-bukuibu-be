@@ -1,16 +1,14 @@
-# Import database
-FROM mysql:8.0.21
-COPY db.sql /docker-entrypoint-initdb.d
-
 # Start from golan base image
 FROM golang:alpine as builder
+
+ENV GO111MODULE=auto
 
 # Add Maintainer info
 LABEL maintainer="Alvin Amartya <alvinamartya1@gmail.com>"
 
 # Install git
 # Git is required for fetching the dependencies
-RUN apk update && apk add --no-cache git go
+RUN apk update && apk add --no-cache git go bash
 
 # Set the current working directory inside the container
 RUN mkdir /app
@@ -37,6 +35,8 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+#COPY --from=builder /app/wait-for .
+COPY --from=builder /app/db.sql .
 COPY --from=builder /app/config ./config
 
 # Expose port 8080 to the outside WORD

@@ -15,9 +15,9 @@ func GetEnvVar(key string) (string, error) {
 		log.Fatal(err)
 	}
 
-	f, err := os.Open(path.Join(dirname, "/config/env.local.json"))
+	f, err := os.Open(path.Join(dirname, "/config/env.dev.json"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err)	
 	}
 
 	blob, err := ioutil.ReadAll(f)

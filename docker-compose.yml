@@ -1,17 +1,17 @@
 version: "3.8"
 
 services:
-  db:
+  buku-ibu-db:
     container_name: buku_ibu_db
     image: mysql:8.0.21
     ports:
-    - 3306:3306
+      - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: 'root'
       MYSQL_DATABASE: 'buku_ibu_mysql'
-      MYSQL_USER: 'root'
+      MYSQL_USER: 'user'
       MYSQL_PASSWORD: 'root'
-      MYSQL_ROOT_HOST: 'db'
+      DATABASE_HOST: 'buku_ibu_db'
     volumes:
       - type: volume
         source: database-mysql
@@ -20,9 +20,7 @@ services:
       - buku-ibu-networks
   buku-ibu-app:
     container_name: buku-ibu-app
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     volumes:
       - type: volume
         source: api
@@ -30,10 +28,11 @@ services:
     restart: on-failure
     ports:
       - 8080:8080
+#    command: [ "./wait-for", "buku_ibu_db:3306", "--", "--", "./main" ]
     networks:
       - buku-ibu-networks
     depends_on:
-      - postgres
+      - buku-ibu-db
 
 networks:
   buku-ibu-networks:
